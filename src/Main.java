@@ -141,7 +141,7 @@ public class Main {
                 "4. View Schedule | 5. Transfer Room | 6.Update Patient Conditions |\n" +
                 "7. Discharge Patient | 8. Cancel Appointment | 0. Back");
         int c = Integer.parseInt(scanner.nextLine());
-        if((c==5 || c==7) && checkAccess(Role.RECEPTIONIST))
+        if((c==5 || c==7) && !checkAccess(Role.DOCTOR, Role.ADMIN))
             return;
         switch (c) {
             case 1 -> patientCtrl.registerAndAdmitPatient();
@@ -159,7 +159,7 @@ public class Main {
         printHeader("CLINICAL SERVICES");
         System.out.println("1. Add Medical Record | 2. View History | 3. Generate Test Report | 4. Update/Record Test Results | 5. View Test Reports | 0. Back");
         int c = Integer.parseInt(scanner.nextLine());
-        if(c!=2 && checkAccess(Role.RECEPTIONIST))
+        if(c!=2 && !checkAccess(Role.ADMIN, Role.DOCTOR, Role.NURSE))
             return;
         switch (c) {
             case 1 -> recordCtrl.addRecord();
@@ -173,9 +173,9 @@ public class Main {
     private static void pharmacyMenu() {
         if (!checkAccess(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST)) return;
         printHeader("PHARMACY MANAGEMENT");
-        System.out.println("1. Add Medicine | 2. View Inventory | 3. Update Stock | 4. Check Low Stock | 0. Back");
+        System.out.println("1. Add Medicine | 2. View Inventory | 3. Update Stock | 4.adma Low Stock | 0. Back");
         int c = Integer.parseInt(scanner.nextLine());
-        if(c!=2 && checkAccess(Role.RECEPTIONIST))
+        if(c!=2 && !checkAccess(Role.ADMIN, Role.DOCTOR, Role.NURSE))
             return;
         switch (c) {
             case 1 -> medCtrl.addMedicine();
