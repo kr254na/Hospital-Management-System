@@ -91,14 +91,23 @@ Built to support concurrent operations via:
 
 src/
 ├── config/ # DB configs and system settings
+
 ├── controllers/ # UI ↔ Service coordination
+
 ├── enums/ # Role & status constants
+
 ├── exceptions/ # Custom domain exceptions
+
 ├── interfaces/ # Repository + service contracts
+
 ├── models/ # POJOs (Patient, User, Bill…)
+
 ├── repository/ # JDBC query implementations
+
 ├── services/ # Business logic layer
+
 ├── sql/ # Schema + seed scripts
+
 └── utility/ # Validators, formatters, helpers
 
 
@@ -171,21 +180,27 @@ Login with seeded Admin credentials
 # 📸 Screenshots
 
 ![](https://github.com/user-attachments/assets/b032aa26-33d4-40ee-95f7-3bae9586b2c6)
+
 *Figure 1: Login Screen*
 ---
 ![](https://github.com/user-attachments/assets/725e90b9-f952-4868-b3c9-80a7e2b66592)
+
 *Figure 2: Infrastructure Management*
 ---
 ![](https://github.com/user-attachments/assets/26c6c3e3-2854-4958-92a9-befbd76dba61)
+
 *Figure 3: Staff Management*
 ---
 ![](https://github.com/user-attachments/assets/145b5094-d82c-407e-bbad-b67316341179)
+
 *Figure 4: Patient Management*
 ---
 ![](https://github.com/user-attachments/assets/05fb095f-0206-4289-8fbc-0da210c6f02c)
+
 *Figure 5: Clinical Management*
 ---
 ![](https://github.com/user-attachments/assets/c39ba1e1-647e-4127-add6-a9c674701f1a)
+
 *Figure 6: Pharmacy Management*
 ---
 ![](https://github.com/user-attachments/assets/35cf5351-5e04-4ad5-a324-da7afc78eb91)
