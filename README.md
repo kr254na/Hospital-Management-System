@@ -90,6 +90,7 @@ Built to support concurrent operations via:
 # 📂 Project Structure
 
 src/
+
 ├── config/ # DB configs and system settings
 
 ├── controllers/ # UI ↔ Service coordination
