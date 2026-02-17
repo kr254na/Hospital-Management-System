@@ -1,0 +1,29 @@
+# --- Java / Compiled Files ---
+*.class
+**/out/
+**/bin/
+*.jar
+*.war
+*.ear
+
+# --- IDE Specific (IntelliJ IDEA) ---
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# --- IDE Specific (Eclipse) ---
+.metadata/
+.classpath
+.project
+.settings/
+
+# --- IDE Specific (VS Code) ---
+.vscode/
+
+# --- Database / OS Specific ---
+.DS_Store
+Thumbs.db
+*.log
+*.tmp

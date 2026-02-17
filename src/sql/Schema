@@ -1,0 +1,199 @@
+CREATE TABLE users (
+    user_id VARCHAR(36) PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('DOCTOR', 'NURSE', 'RECEPTIONIST', 'ADMIN') NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    full_name VARCHAR(100) NOT NULL,
+    contact_info VARCHAR(15),
+    gender ENUM('MALE', 'FEMALE', 'OTHER') NOT NULL,
+    date_of_birth DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE employees (
+    employee_id VARCHAR(36) PRIMARY KEY, -- Same as user_id
+    salary DECIMAL(10, 2) NOT NULL,
+    date_of_joining DATE NOT NULL,
+    FOREIGN KEY (employee_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+CREATE TABLE doctors (
+    doctor_id VARCHAR(36) PRIMARY KEY,
+    specialization VARCHAR(100) NOT NULL,
+    department_id VARCHAR(36),
+    FOREIGN KEY (doctor_id) REFERENCES employees(employee_id) ON DELETE CASCADE
+);
+
+CREATE TABLE departments (
+    dept_id VARCHAR(36) PRIMARY KEY,
+    dept_name VARCHAR(100) NOT NULL UNIQUE,
+    -- Nullable because a department might exist without a head temporarily
+    head_doctor_id VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- If the Doctor is deleted, we keep the Department but set HOD to NULL
+    CONSTRAINT fk_dept_head FOREIGN KEY (head_doctor_id)
+        REFERENCES doctors(doctor_id) ON DELETE SET NULL
+);
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE wards (
+    ward_id VARCHAR(36) PRIMARY KEY,
+    ward_name VARCHAR(100) NOT NULL,
+    -- Ward Number should be unique (e.g., 'W-101') to prevent physical naming conflicts
+    ward_number VARCHAR(20) NOT NULL UNIQUE,
+);
+
+
+CREATE TABLE nurses (
+    nurse_id VARCHAR(36) PRIMARY KEY,
+    ward_id VARCHAR(36),
+    -- CASCADE: Deleting an Employee record automatically removes the Nurse record
+    CONSTRAINT fk_nurse_emp FOREIGN KEY (nurse_id)
+        REFERENCES employees(employee_id) ON DELETE CASCADE,
+    -- Link to the Ward table
+    CONSTRAINT fk_nurse_ward FOREIGN KEY (ward_id)
+        REFERENCES wards(ward_id) ON DELETE SET NULL
+);
+
+CREATE TABLE patients (
+    patient_id VARCHAR(36) PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    contact_number VARCHAR(15) NOT NULL,
+    disease_summary VARCHAR(255),
+    date_of_birth DATE NOT NULL,
+    gender ENUM('MALE', 'FEMALE', 'OTHER') NOT NULL,
+    assigned_doctor_id VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Link to Doctor: If doctor is deleted, patient remains but HOD/Doctor becomes NULL
+    CONSTRAINT fk_patient_doctor FOREIGN KEY (assigned_doctor_id)
+        REFERENCES doctors(doctor_id) ON DELETE SET NULL,
+
+);
+
+ALTER TABLE patients
+    -> ADD COLUMN assigned_room_id VARCHAR(36),
+    -> ADD CONSTRAINT fk_assigned_room
+    ->     FOREIGN KEY (assigned_room_id)
+    ->     REFERENCES rooms(room_id)
+    ->     ON DELETE SET NULL;
+
+CREATE TABLE appointments (
+    appointment_id VARCHAR(36) PRIMARY KEY,
+    patient_id VARCHAR(36) NOT NULL,
+    doctor_id VARCHAR(36) NOT NULL,
+    appointment_time DATETIME NOT NULL,
+    -- AppointmentStatus Enum: SCHEDULED, COMPLETED, CANCELLED
+    status ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED') DEFAULT 'SCHEDULED',
+    symptoms TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Constraints
+    CONSTRAINT fk_appt_patient FOREIGN KEY (patient_id)
+        REFERENCES patients(patient_id) ON DELETE CASCADE,
+    CONSTRAINT fk_appt_doctor FOREIGN KEY (doctor_id)
+        REFERENCES doctors(doctor_id) ON DELETE CASCADE
+);
+
+CREATE TABLE bills (
+    bill_id VARCHAR(36) PRIMARY KEY,
+    appointment_id VARCHAR(36) NOT NULL,
+    patient_id VARCHAR(36) NOT NULL,
+    consultation_fee DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    pharmacy_charges DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    room_charges DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    billing_date DATETIME NOT NULL,
+    -- PaymentStatus Enum: PENDING, PAID, CANCELLED, REFUNDED
+    payment_status ENUM('PENDING', 'PAID') DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Constraints: Restrict deletion to preserve financial history
+    CONSTRAINT fk_bill_patient FOREIGN KEY (patient_id)
+        REFERENCES patients(patient_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_bill_appointment FOREIGN KEY (appointment_id)
+        REFERENCES appointments(appointment_id) ON DELETE RESTRICT
+);
+
+CREATE TABLE medicines (
+    medicine_id VARCHAR(36) PRIMARY KEY,
+    medicine_name VARCHAR(100) NOT NULL UNIQUE,
+    price_per_unit DECIMAL(10, 2) NOT NULL,
+    stock_quantity INT NOT NULL DEFAULT 0,
+    last_restocked TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    -- Safety constraint: stock can never be negative
+    CONSTRAINT chk_stock_positive CHECK (stock_quantity >= 0)
+);
+
+CREATE TABLE medical_records (
+    record_id VARCHAR(36) PRIMARY KEY,
+    patient_id VARCHAR(36) NOT NULL,
+    doctor_id VARCHAR(36) NOT NULL,
+    appointment_id VARCHAR(36) NOT NULL,
+    diagnosis TEXT NOT NULL,
+    treatment_plan TEXT NOT NULL,
+    prescription TEXT NOT NULL,
+    last_updated DATETIME NOT NULL,
+
+    -- Constraints to ensure clinical data integrity
+    CONSTRAINT fk_record_patient FOREIGN KEY (patient_id)
+        REFERENCES patients(patient_id) ON DELETE CASCADE,
+    CONSTRAINT fk_record_doctor FOREIGN KEY (doctor_id)
+        REFERENCES doctors(doctor_id) ON DELETE CASCADE,
+    CONSTRAINT fk_record_appointment FOREIGN KEY (appointment_id)
+        REFERENCES appointments(appointment_id) ON DELETE CASCADE
+);
+
+CREATE TABLE receptionists (
+    receptionist_id VARCHAR(36) PRIMARY KEY,
+    -- Match your DeskLocation Enum (e.g., FRONT_DESK, FLOOR_1, ICU_RECEPTION)
+    desk_location ENUM('MAIN_LOBBY','EMERGENCY_DESK', 'OPD_RECEPTION', 'IPD_RECEPTION', 'PEDIATRIC_WING') NOT NULL,
+
+    -- CASCADE: If the Employee record is deleted, the Receptionist record is wiped
+    CONSTRAINT fk_receptionist_emp FOREIGN KEY (receptionist_id)
+        REFERENCES employees(employee_id) ON DELETE CASCADE
+);
+
+CREATE TABLE rooms (
+    room_id VARCHAR(36) PRIMARY KEY,
+    ward_id VARCHAR(36) NOT NULL,
+    room_number VARCHAR(10) NOT NULL UNIQUE,
+    -- RoomType Enum: GENERAL, SEMI_PRIVATE, PRIVATE, ICU, etc.
+    room_type ENUM('GENERAL', 'SEMI_PRIVATE', 'PRIVATE', 'DELUXE', 'ICU','OPERATION_THEATER') NOT NULL,
+    total_beds INT NOT NULL,
+    occupied_beds INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    price_per_day DECIMAL(10,2)
+
+    -- Constraints
+    CONSTRAINT fk_room_ward FOREIGN KEY (ward_id)
+        REFERENCES wards(ward_id) ON DELETE CASCADE,
+
+    -- Database level validation to prevent overbooking
+    CONSTRAINT chk_bed_limit CHECK (occupied_beds <= total_beds),
+    CONSTRAINT chk_bed_positive CHECK (occupied_beds >= 0)
+);
+
+CREATE TABLE test_reports (
+    report_id VARCHAR(36) PRIMARY KEY,
+    patient_id VARCHAR(36) NOT NULL,
+    doctor_id VARCHAR(36) NOT NULL,
+    test_name VARCHAR(100) NOT NULL,
+    result_data TEXT, -- Nullable because status starts as 'REQUESTED'
+    test_cost DECIMAL(10, 2) NOT NULL,
+    test_status ENUM('REQUESTED', 'COMPLETED', 'CANCELLED') DEFAULT 'REQUESTED',
+    report_date DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Link to Patient and Doctor
+    CONSTRAINT fk_report_patient FOREIGN KEY (patient_id)
+        REFERENCES patients(patient_id) ON DELETE CASCADE,
+    CONSTRAINT fk_report_doctor FOREIGN KEY (doctor_id)
+        REFERENCES doctors(doctor_id) ON DELETE CASCADE
+);
