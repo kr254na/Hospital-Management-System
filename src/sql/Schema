@@ -45,7 +45,7 @@ CREATE TABLE wards (
     ward_id VARCHAR(36) PRIMARY KEY,
     ward_name VARCHAR(100) NOT NULL,
     -- Ward Number should be unique (e.g., 'W-101') to prevent physical naming conflicts
-    ward_number VARCHAR(20) NOT NULL UNIQUE,
+    ward_number VARCHAR(20) NOT NULL UNIQUE
 );
 
 
@@ -72,7 +72,7 @@ CREATE TABLE patients (
 
     -- Link to Doctor: If doctor is deleted, patient remains but HOD/Doctor becomes NULL
     CONSTRAINT fk_patient_doctor FOREIGN KEY (assigned_doctor_id)
-        REFERENCES doctors(doctor_id) ON DELETE SET NULL,
+        REFERENCES doctors(doctor_id) ON DELETE SET NULL
 
 );
 

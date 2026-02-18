@@ -25,7 +25,7 @@ public class DatabaseSeeder {
 
             User admin = new User(
                     "admin",
-                    "Admin@123",
+                    PasswordUtil.hashPassword("Admin@123"),
                     Role.ADMIN,
                     "System Administrator",
                     "9554054732",
