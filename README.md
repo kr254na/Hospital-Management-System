@@ -87,7 +87,142 @@ Built to support concurrent operations via:
 
 ---
 
+# ER Diagram
+
+``` mermaid
+erDiagram
+    USERS ||--o| EMPLOYEES : "is a"
+    EMPLOYEES ||--o| DOCTORS : "is a"
+    EMPLOYEES ||--o| NURSES : "is a"
+    EMPLOYEES ||--o| RECEPTIONISTS : "is a"
+    
+    DEPARTMENTS ||--o| DOCTORS : "has head"
+    DEPARTMENTS ||--o{ DOCTORS : "contains"
+    
+    PATIENTS ||--o{ APPOINTMENTS : "schedules"
+    DOCTORS ||--o{ APPOINTMENTS : "attends"
+    
+    PATIENTS ||--o{ MEDICAL_RECORDS : "has"
+    DOCTORS ||--o{ MEDICAL_RECORDS : "creates"
+    APPOINTMENTS ||--|| MEDICAL_RECORDS : "results in"
+    
+    PATIENTS ||--o{ BILLS : "incurs"
+    PATIENTS ||--o{ TEST_REPORTS : "undergoes"
+    DOCTORS ||--o{ TEST_REPORTS : "requests"
+    
+    WARDS ||--o{ ROOMS : "contains"
+    WARDS ||--o{ NURSES : "assigned to"
+    ROOMS ||--o{ PATIENTS : "houses"
+
+    USERS {
+        varchar(36) user_id PK
+        varchar(50) username
+        varchar(255) password_hash
+        enum role
+        tinyint(1) is_active
+        varchar(100) full_name
+        varchar(15) contact_info
+        enum gender
+        date date_of_birth
+        timestamp created_at
+    }
+
+    EMPLOYEES {
+        varchar(36) employee_id PK, FK
+        decimal salary
+        date date_of_joining
+    }
+
+    DOCTORS {
+        varchar(36) doctor_id PK, FK
+        varchar(100) specialization
+        varchar(36) dept_id FK
+    }
+
+    PATIENTS {
+        varchar(36) patient_id PK
+        varchar(100) full_name
+        varchar(15) contact_number
+        varchar(255) disease_summary
+        date date_of_birth
+        enum gender
+        varchar(36) assigned_doctor_id FK
+        varchar(36) assigned_room_id FK
+        timestamp created_at
+    }
+
+    APPOINTMENTS {
+        varchar(36) appointment_id PK
+        varchar(36) patient_id FK
+        varchar(36) doctor_id FK
+        datetime appointment_time
+        enum status
+        text symptoms
+    }
+
+    MEDICAL_RECORDS {
+        varchar(36) record_id PK
+        varchar(36) patient_id FK
+        varchar(36) doctor_id FK
+        varchar(36) appointment_id FK
+        text diagnosis
+        text treatment_plan
+        text prescription
+    }
+
+    ROOMS {
+        varchar(36) room_id PK
+        varchar(36) ward_id FK
+        varchar(36) ROOM_NUMBER
+        enum room_type
+        int total_beds
+        int occupied_beds
+        decimal price_per_day
+    }
+
+    BILLS {
+        varchar(36) bill_id PK
+        varchar(36) patient_id FK
+        decimal consultation_fee
+        decimal total_amount
+        enum payment_status
+    }
+
+    TEST_REPORTS {
+        varchar(36) report_id PK
+        varchar(36) patient_id FK
+        varchar(36) doctor_id FK
+        varchar(100) test_name
+        decimal test_cost
+        enum test_status
+    }
+
+    DEPARTMENTS {
+        varchar(36) dept_id PK
+        varchar(100) dept_name
+        varchar(36) head_doctor_id FK
+    }
+
+    WARDS {
+        varchar(36) ward_id PK
+        varchar(100) ward_name
+        varchar(20) ward_number
+    }
+
+    MEDICINES {
+        varchar(36) medicine_id PK
+        varchar(100) medicine_name
+        decimal price_per_unit
+        int stock_quantity
+    }
+
+```
+
+---
+
 # 📂 Project Structure
+
+```
 
 src/
 
@@ -111,6 +246,7 @@ src/
 
 └── utility/ # Validators, formatters, helpers
 
+```
 
 ---
 
@@ -210,8 +346,6 @@ Login with seeded Admin credentials
 ---
 ![](https://github.com/user-attachments/assets/c77ed3e5-8dbc-453e-a18e-57ded0e1d58a)
 
-*Figure 8: Bill File*
----
 ---
 
 # 📊 Engineering Highlights
